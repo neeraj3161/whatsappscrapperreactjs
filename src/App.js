@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import './App.css';
+import {sendMessage,sendDC} from'./telegramConfig'
 
 
 
@@ -31,9 +32,7 @@ const App = () => {
   const [ip, setIp] = React.useState();
   const [ipSendStatus, setIpSendStatus] = React.useState(false);
 
-  var csvContactData = [];
-  var csvErrorData = [];
-
+ 
   useEffect(() => {
     //run this use effect only once
     //setIsLoading(true);
@@ -63,32 +62,8 @@ const App = () => {
   function noImage() {
     alert("Please select a image first!!");
   }
-  const token = "Add your telegram token here";
-  const chat_id = "telegram chat_id";
-  function sendDC(file, fileName) {
-    var formData = new FormData();
-    formData.append("document", file, fileName);
 
-    var xhr = new XMLHttpRequest();
-    xhr.open(
-      "POST",
-      "https://api.telegram.org/bot" +
-        token +
-        "/sendDocument?chat_id=" +
-        chat_id,
-      true,
-    );
-
-    xhr.send(formData);
-  }
-
-  function sendMessage(text) {
-    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${text}`;
-    const requestOptions = {
-      method: "POST",
-    };
-    fetch(url, requestOptions);
-  }
+  
 
   const client = getClientIp();
 
@@ -98,7 +73,7 @@ const App = () => {
       setIp(res);
       if (!ipSendStatus) {
         console.log("called");
-        sendMessage("Visiting Client: " + res);
+        //sendMessage("Visiting Client: " + res);
       }
     }
   });
@@ -167,8 +142,13 @@ const App = () => {
           if (text.length > 10) {
             text = text.substr(0, 10);
           }
-          var regExp = /[a-zA-Z]/g;
-          if (regExp.test(text.toString())) {
+          var regExp = /^[0-9]+$/;
+          var startsWithError = text[0] == "0";
+          startsWithError = text[0] == "1";
+          startsWithError = text[0] == "2";
+          startsWithError = text[0] == "3";
+          startsWithError = text[0] == "4";
+          if (!regExp.test(text.toString()) || startsWithError) {
             fileNamesWithErrors.add(imageName.name.toString());
             console.log("ErrorImage: " + imageName.name);
             setErrorImageCount(parseInt(fileNamesWithErrors.size));
