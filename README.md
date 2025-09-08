@@ -40,3 +40,7 @@ This tool works by analyzing screenshots of your WhatsApp contact list and turni
 1. Install dependencies:  
    ```bash
    npm install
+Run the app
+```bash
+npm run
+
