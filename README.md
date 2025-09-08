@@ -1,30 +1,34 @@
-📱 WhatsApp Contacts Scraper
+# 📱 WhatsApp Contacts Scraper  
 
-This tool helps you extract contact data from WhatsApp in a simple way.
-Instead of relying on direct API access, it works by analyzing screenshots of your WhatsApp contact list.
+Easily **extract contact data from WhatsApp** without relying on APIs.  
+This tool works by analyzing screenshots of your WhatsApp contact list and turning them into structured data.  
 
-🚀 How It Works
+---
 
-Scroll & Record
+## 🚀 How It Works  
 
-Use any auto-scroller tool to scroll through your WhatsApp contact list.
+### 1️⃣ Scroll & Record  
+🔹 Use an **auto-scroller tool** to smoothly scroll through your WhatsApp contact list.  
+🎥 While it scrolls, **record your screen**.  
 
-While it scrolls, record your screen.
+---
 
-Convert Video → Images
+### 2️⃣ Convert Video → Images  
+🎬 Take your recording and convert it into **image frames**.  
+🖼️ Each frame will represent a portion of your contact list.  
 
-Once you have the recording, convert the video into image frames.
+👉 The easiest way: **VLC Media Player**  
+📖 Tutorial: [Convert Video to Images in VLC](https://www.youtube.com/watch?v=6dLFVXiM4QA)  
 
-You can do this easily using VLC Media Player.
+---
 
-Tutorial: Convert Video to Images in VLC
+### 3️⃣ Upload Images to the Tool  
+📂 Once your frames are ready, **upload them to this tool**.  
 
-Upload Images to the Tool
+---
 
-Upload all the images generated from VLC to this tool.
+### 4️⃣ Scraping Magic 🪄  
+⚡ The tool will process all uploaded images.  
+📊 It then extracts and compiles your **WhatsApp contact data** into a clean format.  
 
-Scraping Magic 🪄
-
-The tool processes the images and extracts the contact data.
-
-Sit back and let it do the hard work for you.
+✅ Sit back, relax, and let the scraper do the work for you!  
