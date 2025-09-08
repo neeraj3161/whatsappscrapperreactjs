@@ -54,7 +54,7 @@ const App = () => {
   var intitalLoad = true;
 
   const startProcess = async () => {
-    alert("For testing purpose app will work for first 10 images!!");
+    // alert("For testing purpose app will work for first 10 images!!");
     setProgress(0);
     processImage();
   };
@@ -269,7 +269,7 @@ const App = () => {
           )}
 
           <>
-            <h4 className="text-center py-3 mc-3">Whats app phone number</h4>
+            <h4 className="text-center strong py-3 mc-3">Whats app contacts scrapper tool (Pro)</h4>
             {!isLoading && !isDownloadable && (
               <p className="text-center text-secondary">{introText}</p>
             )}
@@ -351,7 +351,7 @@ const App = () => {
                 onChange={(e) => {
                   setImage(
                     Array.from(e.target.files)
-                      .slice(0, 10)
+                      // .slice(0, 10)
                       .map(convertImageToURLArray),
                   );
                   setStatusText(
