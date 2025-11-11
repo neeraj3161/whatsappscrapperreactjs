@@ -5,7 +5,7 @@ This tool works by analyzing screenshots of your WhatsApp contact list and turni
 
 ---
 
-## 🚀 How It Works  
+## 🚀 How It Works
 
 ### 1️⃣ Scroll & Record  
 🔹 Use an **auto-scroller tool** to smoothly scroll through your WhatsApp contact list.  
